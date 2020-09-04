@@ -1,0 +1,106 @@
+#include <iostream>
+using namespace std;
+#include<stdio.h>
+#include<stdlib.h> 
+#include<ctype.h>
+#include<string.h> 
+#define EOF (-1)
+#include <iostream>
+#include <fstream>
+#include <cassert>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <vector>
+int main(int argc,char *argv[])
+{
+	/****************参数初始化打开文件****************/ 
+	//DLXSimulator001 -i instr -m mem -o output
+	//判断是否假文件，以及有无memory文件
+	char input[256]={0};
+	char memory[256]={0};
+	char output[256]={0};
+	for(int i=0;i<argc;i++)
+	{
+		if(!strcmp(argv[i],"-i")) 
+			memcpy(input,argv[i+1],strlen(argv[i+1])+1);
+		if(!strcmp(argv[i],"-m")) 
+			memcpy(memory,argv[i+1],strlen(argv[i+1])+1);
+		if(!strcmp(argv[i],"-o")) 
+			memcpy(output,argv[i+1],strlen(argv[i+1])+1);
+	}
+	ifstream fp1(input);
+	ifstream fp2(memory);
+	ofstream fo(output);
+	
+	int flag=0,tag=0;//flag输出空格变为1//tag标记多空格连续情况 
+	char now,next;
+    fp1>>noskipws;//不忽略换行符和空格 
+    fp2>>noskipws;
+    fp1>>next;
+    now=next;//d是当前字符，c是下一个字符 
+    while (!fp1.eof())
+    {
+    	fp1>>next;
+		if(islower(next))
+		{
+			next=toupper(next);
+		}							
+		if(next=='\t' || next=='\n')
+		{
+			next=' ';
+		}											
+		if(next!=' ' && flag==1 && tag==0)
+		{
+			flag=0;	
+		}
+		
+		//解决; :前的空格输出问题 
+		if((next==';'|| next==':') && now!=' ')
+		{
+			fo<<now;
+		}
+		//d为普通字符的输入 
+		else if(flag==0 && next!=';' && next!=':')
+		{
+			if(next==' ')
+			{
+				flag=1;//下一个为空格则设flag为1 
+			}
+			fo<<now;
+			//每一条指令完之后就输出 \n 
+		}		
+		
+		if(next!=' '&& now!=';' && now!=':')
+		{
+			tag=0;
+		}
+		else if(now==':')
+		{
+			tag=1;  //改tag为1(不输出分号后面的空格)
+		}
+		else if(now==';')
+		{
+			tag=1;
+			fo<<'\n';
+		}
+    	now=next;
+	} 
+
+	fo<<'\n';
+	fp1.close();
+	char c;
+	/************memory.txt************/
+    while (fp2.peek()!=EOF)//peek可以返回输入流中的下一个字符而不把这个字符从输入流中取出
+    {
+        fp2>>c;
+        if(islower(c))
+		{
+			c=toupper(c);
+		}
+		fo<<c;
+    }
+    fp2.close();           
+    fo.close();
+	return 0;
+}
